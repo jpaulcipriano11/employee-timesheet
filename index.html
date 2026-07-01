@@ -884,25 +884,37 @@ document.getElementById("attendanceForm").reset();
         document.getElementById('editModal').classList.add('active');
       },
 
-      handleEditSubmit(e) {
-        e.preventDefault();
-        const name = document.getElementById('editName').value.trim();
-        const date = document.getElementById('editDate').value;
-        const status = document.getElementById('editStatus').value;
+      async handleEditSubmit(e) {
+    e.preventDefault();
 
-        if (!name || !date || !status) return;
+    const name = document.getElementById('editName').value.trim();
+    const date = document.getElementById('editDate').value;
+    const status = document.getElementById('editStatus').value;
 
-        const record = this.records.find(r => r.id === this.editingId);
-        if (record) {
-          record.name = name;
-          record.date = date;
-          record.status = status;
-          this.showToast('Record updated successfully');
-        }
+    if (!name || !date || !status) return;
 
-        this.closeModal();
-        this.render();
-      },
+    const { error } = await window.supabase
+        .from("attendance")
+        .update({
+            employee_name: name,
+            attendance_date: date,
+            status: status
+        })
+        .eq("id", this.editingId);
+
+    if (error) {
+        console.error("Update error:", error);
+        this.showToast('Failed to update record', 'error');
+        return;
+    }
+
+    this.showToast('Record updated successfully');
+
+    this.closeModal();
+
+    // Reload fresh data from Supabase
+    await this.loadAttendance();
+},
 
       closeModal() {
         document.getElementById('editModal').classList.remove('active');

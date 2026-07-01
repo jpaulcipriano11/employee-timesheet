@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Attendance System</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --info: #8b5cf6;
+      --bg: #f3f4f6;
+      --card: #ffffff;
+      --text: #1f2937;
+      --text-light: #6b7280;
+      --border: #e5e7eb;
+      --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 0;
+      margin-bottom: 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .date-display {
+      font-size: 0.875rem;
+      color: var(--text-light);
+      font-weight: 500;
+    }
+
+    /* Stats Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (min-width: 768px) {
+      .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .stat-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 1.25rem;
+      box-shadow: var(--shadow);
+      border-left: 4px solid;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .stat-card.present { border-left-color: var(--success); }
+    .stat-card.absent { border-left-color: var(--danger); }
+    .stat-card.halfday { border-left-color: var(--warning); }
+    .stat-card.leave { border-left-color: var(--info); }
+
+    .stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-light);
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-value {
+      font-size: 1.875rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .stat-card.present .stat-value { color: var(--success); }
+    .stat-card.absent .stat-value { color: var(--danger); }
+    .stat-card.halfday .stat-value { color: var(--warning); }
+    .stat-card.leave .stat-value { color: var(--info); }
+
+    /* Form Card */
+    .form-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+    }
+
+    .form-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 768px) {
+      .form-grid {
+        grid-template-columns: 2fr 1fr 1fr auto;
+        align-items: end;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.375rem;
+    }
+
+    label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-light);
+    }
+
+    input, select {
+      padding: 0.625rem 0.875rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.9375rem;
+      font-family: inherit;
+      background: var(--card);
+      color: var(--text);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.625rem 1.25rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      width: 100%;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: var(--bg);
+      color: var(--text);
+      border: 1.5px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border);
+    }
+
+    .btn-danger {
+      background: #fef2f2;
+      color: var(--danger);
+      border: 1.5px solid #fecaca;
+      padding: 0.5rem;
+    }
+
+    .btn-danger:hover {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-success {
+      background: #ecfdf5;
+      color: var(--success);
+      border: 1.5px solid #a7f3d0;
+      padding: 0.5rem;
+    }
+
+    .btn-success:hover {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-icon {
+      padding: 0.5rem;
+      min-width: 36px;
+      min-height: 36px;
+    }
+
+    /* Filters */
+    .filters {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 0.375rem 0.875rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      color: var(--text-light);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .filter-btn:hover:not(.active) {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* Table / List */
+    .records-card {
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .records-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .records-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+
+    .records-count {
+      font-size: 0.875rem;
+      color: var(--text-light);
+      font-weight: 500;
+    }
+
+    .empty-state {
+      padding: 3rem 1.5rem;
+      text-align: center;
+      color: var(--text-light);
+    }
+
+    .empty-state svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    .empty-state p {
+      font-size: 1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .empty-state span {
+      font-size: 0.875rem;
+      opacity: 0.7;
+    }
+
+    /* Desktop Table */
+    .desktop-table {
+      display: none;
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    @media (min-width: 768px) {
+      .desktop-table {
+        display: table;
+      }
+      .mobile-list {
+        display: none;
+      }
+    }
+
+    .desktop-table th {
+      text-align: left;
+      padding: 0.875rem 1.5rem;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-light);
+      font-weight: 600;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .desktop-table td {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9375rem;
+      vertical-align: middle;
+    }
+
+    .desktop-table tr:hover {
+      background: #f9fafb;
+    }
+
+    .desktop-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Mobile Cards */
+    .mobile-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .mobile-card {
+      padding: 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .mobile-card:last-child {
+      border-bottom: none;
+    }
+
+    .mobile-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .mobile-card-name {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    .mobile-card-date {
+      font-size: 0.875rem;
+      color: var(--text-light);
+      margin-top: 0.125rem;
+    }
+
+    .mobile-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.25rem;
+    }
+
+    .mobile-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    /* Status Badge */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+    }
+
+    .badge.present {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .badge.absent {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .badge.halfday {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .badge.leave {
+      background: #ede9fe;
+      color: #5b21b6;
+    }
+
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      padding: 1rem;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--card);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      animation: modalIn 0.3s ease;
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .modal-header {
+      padding: 1.5rem 1.5rem 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0.25rem;
+      color: var(--text-light);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-close:hover {
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .modal-body {
+      padding: 1.25rem 1.5rem;
+    }
+
+    .modal-footer {
+      padding: 0 1.5rem 1.5rem;
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+    }
+
+    .modal-footer .btn {
+      flex: 1;
+    }
+
+    @media (min-width: 480px) {
+      .modal-footer .btn {
+        flex: 0 1 auto;
+      }
+    }
+
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-width: 360px;
+      width: calc(100% - 2rem);
+    }
+
+    .toast {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s;
+      border-left: 4px solid var(--success);
+    }
+
+    .toast.error {
+      border-left-color: var(--danger);
+    }
+
+    @keyframes toastIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes toastOut {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+
+    /* Responsive tweaks */
+    @media (max-width: 480px) {
+      .container { padding: 0.75rem; }
+      h1 { font-size: 1.25rem; }
+      .form-card { padding: 1rem; }
+      .records-header { padding: 1rem; }
+      .stat-value { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-content">
+      <div>
+        <h1>📋 Attendance System</h1>
+        <div class="date-display" id="currentDate"></div>
+      </div>
+      <button class="btn btn-secondary" onclick="app.exportCSV()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        Export CSV
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- Stats -->
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card present">
+        <div class="stat-label">Present</div>
+        <div class="stat-value" id="statPresent">0</div>
+      </div>
+      <div class="stat-card absent">
+        <div class="stat-label">Absent</div>
+        <div class="stat-value" id="statAbsent">0</div>
+      </div>
+      <div class="stat-card halfday">
+        <div class="stat-label">Half Day</div>
+        <div class="stat-value" id="statHalfDay">0</div>
+      </div>
+      <div class="stat-card leave">
+        <div class="stat-label">Leave</div>
+        <div class="stat-value" id="statLeave">0</div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div class="form-card">
+      <div class="form-title">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        Mark Attendance
+      </div>
+      <form class="form-grid" id="attendanceForm" onsubmit="app.handleSubmit(event)">
+        <div class="form-group">
+          <label for="empName">Employee Name</label>
+          <input type="text" id="empName" required autocomplete="on">
+        </div>
+        <div class="form-group">
+          <label for="empDate">Date</label>
+          <input type="date" id="empDate" required>
+        </div>
+        <div class="form-group">
+          <label for="empStatus">Status</label>
+          <select id="empStatus" required>
+            <option value="" disabled selected>Select status</option>
+            <option value="Present">Present</option>
+            <option value="Absent">Absent</option>
+            <option value="Half Day">Half Day</option>
+            <option value="Leave">Leave</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" id="submitBtn">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          <span id="submitBtnText">Add</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Records -->
+    <div class="records-card">
+      <div class="records-header">
+        <div class="records-title">Attendance Records</div>
+        <div class="records-count" id="recordsCount">0 records</div>
+      </div>
+
+      <div class="filters" id="filters">
+        <button class="filter-btn active" onclick="app.setFilter('All')">All</button>
+        <button class="filter-btn" onclick="app.setFilter('Present')">Present</button>
+        <button class="filter-btn" onclick="app.setFilter('Absent')">Absent</button>
+        <button class="filter-btn" onclick="app.setFilter('Half Day')">Half Day</button>
+        <button class="filter-btn" onclick="app.setFilter('Leave')">Leave</button>
+      </div>
+
+      <!-- Desktop Table -->
+      <table class="desktop-table" id="desktopTable">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="desktopTableBody"></tbody>
+      </table>
+
+      <!-- Mobile List -->
+      <div class="mobile-list" id="mobileList"></div>
+
+      <div class="empty-state" id="emptyState" style="display: none;">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"/></svg>
+        <p>No records found</p>
+        <span>Add an attendance record to get started</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Edit Record</div>
+        <button class="modal-close" onclick="app.closeModal()">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="editForm" onsubmit="app.handleEditSubmit(event)" class="form-grid" style="grid-template-columns: 1fr;">
+          <input type="hidden" id="editId">
+          <div class="form-group">
+            <label for="editName">Employee Name</label>
+            <input type="text" id="editName" required>
+          </div>
+          <div class="form-group">
+            <label for="editDate">Date</label>
+            <input type="date" id="editDate" required>
+          </div>
+          <div class="form-group">
+            <label for="editStatus">Status</label>
+            <select id="editStatus" required>
+              <option value="Present">Present</option>
+              <option value="Absent">Absent</option>
+              <option value="Half Day">Half Day</option>
+              <option value="Leave">Leave</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="app.closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="document.getElementById('editForm').dispatchEvent(new Event('submit'))">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+  const supabase = window.supabase;
+    const app = {
+      records: [],
+      filter: 'All',
+      editingId: null,
+
+      async init() {
+    // Set today's date in header
+    const now = new Date();
+
+    document.getElementById('currentDate').textContent =
+        now.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+    // Set default date in form
+    document.getElementById('empDate').valueAsDate = new Date();
+
+    // Load attendance from Supabase
+    await this.loadAttendance();
+},
+
+async loadAttendance() {
+
+    const { data, error } = await window.supabase
+        .from("attendance")
+        .select("*")
+        .order("attendance_date", { ascending: false });
+
+    if (error) {
+        console.error(error);
+        this.showToast("Failed to load attendance", "error");
+        return;
+    }
+
+    this.records = data.map(row => ({
+        id: row.id,
+        name: row.employee_name,
+        date: row.attendance_date,
+        status: row.status
+    }));
+
+    this.render();
+},
+
+      formatDate(date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      },
+
+      async handleSubmit(e) {
+        e.preventDefault();
+        const name = document.getElementById('empName').value.trim();
+        const date = document.getElementById('empDate').value;
+        const status = document.getElementById('empStatus').value;
+
+        if (!name || !date || !status) return;
+
+        // Check for duplicate on same date
+        const duplicate = this.records.find(r => r.name.toLowerCase() === name.toLowerCase() && r.date === date);
+        if (duplicate && !this.editingId) {
+          this.showToast('Record already exists for this employee on this date', 'error');
+          return;
+        }
+
+        if (this.editingId) {
+          const record = this.records.find(r => r.id === this.editingId);
+          if (record) {
+            record.name = name;
+            record.date = date;
+            record.status = status;
+            this.showToast('Record updated successfully');
+          }
+          this.editingId = null;
+          document.getElementById('submitBtnText').textContent = 'Add';
+        } else {
+    const { data, error } = await window.supabase
+        .from("attendance")
+        .insert([
+            {
+                employee_name: name,
+                attendance_date: date,
+                status: status
+            }
+        ])
+        .select();
+
+    if (error) {
+        console.error(error);
+        this.showToast("Failed to save attendance");
+        return;
+    }
+
+    const newRecord = {
+        id: data[0].id,
+        name,
+        date,
+        status
+    };
+
+    this.records.unshift(newRecord);
+
+this.showToast("Attendance marked successfully");
+}
+
+this.render();
+this.closeModal();
+document.getElementById("attendanceForm").reset();
+},
+
+      editRecord(id) {
+        const record = this.records.find(r => r.id === id);
+        if (!record) return;
+
+        this.editingId = id;
+        document.getElementById('editId').value = id;
+        document.getElementById('editName').value = record.name;
+        document.getElementById('editDate').value = record.date;
+        document.getElementById('editStatus').value = record.status;
+
+        document.getElementById('editModal').classList.add('active');
+      },
+
+      handleEditSubmit(e) {
+        e.preventDefault();
+        const name = document.getElementById('editName').value.trim();
+        const date = document.getElementById('editDate').value;
+        const status = document.getElementById('editStatus').value;
+
+        if (!name || !date || !status) return;
+
+        const record = this.records.find(r => r.id === this.editingId);
+        if (record) {
+          record.name = name;
+          record.date = date;
+          record.status = status;
+          this.showToast('Record updated successfully');
+        }
+
+        this.closeModal();
+        this.render();
+      },
+
+      closeModal() {
+        document.getElementById('editModal').classList.remove('active');
+        this.editingId = null;
+      },
+
+      async deleteRecord(id) {
+    if (!confirm('Are you sure you want to delete this record?')) return;
+
+    const { error } = await window.supabase
+        .from("attendance")
+        .delete()
+        .eq("id", id);
+
+    if (error) {
+        console.error("Delete failed:", error);
+        this.showToast('Failed to delete record', 'error');
+        return;
+    }
+
+    // Remove from local array after successful database delete
+    this.records = this.records.filter(r => r.id !== id);
+
+    this.showToast('Record deleted');
+    this.render();
+},
+
+      setFilter(status) {
+        this.filter = status;
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.textContent === status);
+        });
+        this.render();
+      },
+
+      getFilteredRecords() {
+        if (this.filter === 'All') return this.records;
+        return this.records.filter(r => r.status === this.filter);
+      },
+
+      updateStats() {
+        const stats = { Present: 0, Absent: 0, 'Half Day': 0, Leave: 0 };
+        this.records.forEach(r => {
+          if (stats[r.status] !== undefined) stats[r.status]++;
+        });
+        document.getElementById('statPresent').textContent = stats.Present;
+        document.getElementById('statAbsent').textContent = stats.Absent;
+        document.getElementById('statHalfDay').textContent = stats['Half Day'];
+        document.getElementById('statLeave').textContent = stats.Leave;
+      },
+
+      render() {
+        const filtered = this.getFilteredRecords();
+        const desktopBody = document.getElementById('desktopTableBody');
+        const mobileList = document.getElementById('mobileList');
+        const emptyState = document.getElementById('emptyState');
+        const countLabel = document.getElementById('recordsCount');
+
+        countLabel.textContent = `${filtered.length} record${filtered.length !== 1 ? 's' : ''}`;
+
+        if (filtered.length === 0) {
+          desktopBody.innerHTML = '';
+          mobileList.innerHTML = '';
+          emptyState.style.display = 'block';
+          document.getElementById('desktopTable').style.display = 'none';
+          this.updateStats();
+          return;
+        }
+
+        emptyState.style.display = 'none';
+        if (window.innerWidth >= 768) {
+          document.getElementById('desktopTable').style.display = 'table';
+        }
+
+        // Desktop
+        desktopBody.innerHTML = filtered.map(r => `
+          <tr>
+            <td style="font-weight:600">${this.escapeHtml(r.name)}</td>
+            <td>${this.formatDisplayDate(r.date)}</td>
+            <td><span class="badge ${r.status.toLowerCase().replace(' ', '')}">${r.status}</span></td>
+            <td>
+              <div class="actions">
+                <button class="btn btn-success btn-icon" onclick="app.editRecord(${r.id})" title="Edit">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
+                </button>
+                <button class="btn btn-danger btn-icon" onclick="app.deleteRecord(${r.id})" title="Delete">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+
+        // Mobile
+        mobileList.innerHTML = filtered.map(r => `
+          <div class="mobile-card">
+            <div class="mobile-card-header">
+              <div>
+                <div class="mobile-card-name">${this.escapeHtml(r.name)}</div>
+                <div class="mobile-card-date">${this.formatDisplayDate(r.date)}</div>
+              </div>
+              <span class="badge ${r.status.toLowerCase().replace(' ', '')}">${r.status}</span>
+            </div>
+            <div class="mobile-card-footer">
+              <div class="mobile-actions">
+                <button class="btn btn-success btn-icon" onclick="app.editRecord(${r.id})">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
+                </button>
+                <button class="btn btn-danger btn-icon" onclick="app.deleteRecord(${r.id})">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+        this.updateStats();
+      },
+
+      formatDisplayDate(dateStr) {
+        const date = new Date(dateStr + 'T00:00:00');
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      },
+
+      escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      },
+
+      showToast(message, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            ${type === 'error' 
+              ? '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>' 
+              : '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'}
+          </svg>
+          <span>${this.escapeHtml(message)}</span>
+        `;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+      },
+
+      exportCSV() {
+        if (this.records.length === 0) {
+          this.showToast('No records to export', 'error');
+          return;
+        }
+        const headers = ['Employee Name', 'Date', 'Status'];
+        const rows = this.records.map(r => [r.name, r.date, r.status]);
+        const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `attendance-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        this.showToast('CSV exported successfully');
+      }
+    };
+
+    // Close modal on outside click
+    document.getElementById('editModal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('editModal')) app.closeModal();
+    });
+
+    // Handle window resize to re-render table visibility
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => app.render(), 150);
+    });
+
+       // Initialize
+   
+</script>
+
+<script type="module">
+
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const supabase = createClient(
+    "https://qpkdlvjgrjjrtfyohpuz.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwa2RsdmpncmpqcnRmeW9ocHV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NTgzNDksImV4cCI6MjA5ODQzNDM0OX0.fkd_PKQuSAEZY6s2x2po4URNxctgzf1_C85YerLnTmM"
+);
+
+window.supabase = supabase;
+await app.init();
+
+
+</script>
+
+</body>
+</html>
